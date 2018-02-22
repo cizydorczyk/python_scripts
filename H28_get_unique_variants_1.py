@@ -3,16 +3,16 @@ import pandas as pd
 
 script, input_matrix, output_matrix, output_ped, output_map, output_variants_key = argv
 
-inputmatrix = pd.read_csv(filepath_or_buffer=input_matrix, sep='\t', index_col=0)
+inputmatrix = pd.read_csv(filepath_or_buffer=input_matrix, sep='\t', index_col=0, dtype=str)
 
 inputcol = list(inputmatrix.columns)
+
 print "Original number of columns: ",len(inputcol)
 
 colstring_dict = {}
 colstring_set = set()
 for i in inputcol:
 	col = list(inputmatrix[i])
-	col = map(str, col)
 	colstring = ''.join(col)
 	if colstring not in colstring_set:
 		colstring_set.add(colstring)
@@ -38,7 +38,7 @@ outmatrix1 = inputmatrix.drop(labels=to_drop, axis=1, inplace=False)
 outmatrix1.to_csv(path_or_buf=output_matrix, sep='\t')
 
 # Create ped/map files:
-outmatrix1 = outmatrix1.replace([0, 1], ["A", "G"])
+outmatrix1 = outmatrix1.replace(["0", "1"], ["A", "G"])
 
 colnames_new = list(outmatrix1.columns)
 
@@ -56,13 +56,13 @@ outmatrix2.columns = colnames_new2
 frames = [outmatrix1, outmatrix2]
 outmatrix3 = pd.concat(frames, axis=1)
 
-outmatrix3 = outmatrix3.reindex(sorted(outmatrix3.columns), axis=1)
+outmatrix3 = outmatrix3.reindex_axis(sorted(outmatrix3.columns), axis=1)
 
 ## Generate ped/map files with all fields (dummy):
 print "Generating complete (dummy) PED file..."
 
 rownames = list(outmatrix3.index)
-sex = ["1"]*155
+sex = ["0"]*155
 phenotype =  ["-9"]*155
 pid = ["0"]*155
 mid = ["0"]*155
