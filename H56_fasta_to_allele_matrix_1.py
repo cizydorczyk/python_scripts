@@ -222,6 +222,8 @@ if args.file_type == ['vcf']:
 	variants1.replace(["."], ["A"], inplace=True)
 	variants1 = variants1.apply(indels_to_binary, axis=0)
 
+	variants1 = variants1.apply(convert_to_binary, axis=0)
+
 if args.file_type == ['roary']:
 
 	print "Reading Roary Rtab file..."
@@ -329,8 +331,9 @@ print "Final number of variants: ", len(variants1.columns)
 if args.variant_type == ['snp']:
 	print "Writing binary matrix to file..."
 	output_matrix = args.output_prefix + "_binary_matrix.txt"
-	variants_matrix = convert_to_binary(variants1)
-	variants_matrix.to_csv(path_or_buf=output_matrix, sep='\t')
+	variants1_binary = variants1.copy()
+	variants1_binary = variants1_binary.apply(convert_to_binary, axis=0)
+	variants1_binary.to_csv(path_or_buf=output_matrix, sep='\t')
 
 if args.variant_type == ['indel'] or args.variant_type == ['roary']:
 	print "Writing binary matrix to file..."
