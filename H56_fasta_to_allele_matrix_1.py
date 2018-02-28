@@ -222,8 +222,6 @@ if args.file_type == ['vcf']:
 	variants1.replace(["."], ["A"], inplace=True)
 	variants1 = variants1.apply(indels_to_binary, axis=0)
 
-	variants1 = variants1.apply(convert_to_binary, axis=0)
-
 if args.file_type == ['roary']:
 
 	print "Reading Roary Rtab file..."
@@ -335,12 +333,21 @@ if args.variant_type == ['snp']:
 	variants1_binary = variants1_binary.apply(convert_to_binary, axis=0)
 	variants1_binary.to_csv(path_or_buf=output_matrix, sep='\t')
 
-if args.variant_type == ['indel'] or args.variant_type == ['roary']:
+if args.variant_type == ['indel']:
+	print "Writing binary matrix to file..."
+	indels_binary = variants1.replace(["A", "G"], ["0", "1"])
+	output_matrix = args.output_prefix + "_binary_matrix.txt"
+	indels_binary.to_csv(path_or_buf=output_matrix, sep='\t')
+
+if args.variant_type == ['roary']:
 	print "Writing binary matrix to file..."
 	output_matrix = args.output_prefix + "_binary_matrix.txt"
 	variants1.to_csv(path_or_buf=output_matrix, sep='\t')
 
 #################### Generate ped/map files #########################
+if args.variant_type == ['roary']:
+	variants1.replace(["0", "1"], ["A", "G"], inplace=True)
+
 variants2 = variants1.copy()
 
 # Rename columns to allow for easy sorting:
