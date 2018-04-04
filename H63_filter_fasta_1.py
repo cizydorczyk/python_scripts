@@ -1,7 +1,7 @@
 from sys import argv
 import pandas
 
-script, fasta, positions_file, output_multiall_fasta, output_multiall_positions, output_biall_fasta, output_biall_positions, output_biall_matrix = argv
+script, fasta, positions_file, output_fasta, output_positions = argv
 
 # Create dictionary of fasta sequences, with header as key and sequence as value:
 infile_dict = {}
@@ -18,24 +18,6 @@ with open(positions_file, 'r') as infile2:
         positions_list.append(line.strip().split('-')[1])
 
 outnames = pandas.Series(positions_list)
-
-# reference = infile_dict["REF"]
-
-# # Convert reference list into a series and label positions with high quality positions list:
-# ref_series = pandas.Series(reference, index=positions_list)
-
-# # Delete reference sequence from infile_dict:
-# del infile_dict["REF"]
-# del infile_dict["528"]
-# del infile_dict["529"]
-# del infile_dict["530"]
-# del infile_dict["531"]
-# del infile_dict["532"]
-# del infile_dict["548"]
-# del infile_dict["549"]
-# del infile_dict["550"]
-# del infile_dict["538"]
-# del infile_dict["542"]
 
 # Turn sequence dictionary into dataframe, with positions as the column names:
 df1 = pandas.DataFrame.from_dict(infile_dict, orient='index')
@@ -151,14 +133,14 @@ print "Number of SNPs after removing sites with 'N': ", len(df1.columns)
 output_multiallelic_positions = list(df1.columns)
 
 # Write multiallelic positions to file:
-with open(output_multiall_positions, 'w') as outfile2:
+with open(output_positions, 'w') as outfile2:
     for position in output_multiallelic_positions:
         outfile2.write(str(position) + '\n')
 
 # Write multiallelic isolate sequences to file:
 df1_dict = df1.transpose().to_dict(orient='list')
 
-with open(output_multiall_fasta, 'w') as outfile:
+with open(output_fasta, 'w') as outfile:
     for key in df1_dict:
         outfile.write('>' + key + '\n' + ''.join(df1_dict[key]) + '\n')
 
