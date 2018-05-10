@@ -25,7 +25,7 @@ for lnum, line in enumerate(contents):
             contig_num = line.strip().split(' ')[-1]
             query_list.append(contig_num)
             for line in contents:
-                if line.startswith(contig_num + '\t') and "Escherichia coli" in line:
+                if line.startswith(contig_num + '\t') and "Pseudomonas" in line:
                     fill_color.append("deepskyblue")
                     out_color.append("blue")
                     break
