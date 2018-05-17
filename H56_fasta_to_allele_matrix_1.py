@@ -316,12 +316,13 @@ if args.unique_seg == True:
 
 	output_collapsed_var_key = args.output_prefix + '_collapsed_variants_key.txt'
 	with open(output_collapsed_var_key, 'w') as outfile1:
+		outfile1.write("snp_kept" + '\t' + 'collapsed_snps' + '\n')
 		for key in coldict:
 
 			key_list = map(str, coldict[key])
 			out_string = '\t'.join(key_list)
 
-			outfile1.write("snp_kept" + '\t' + 'collapsed_snps' + '\n')
+			
 			outfile1.write(key_list[0] + '\t' + out_string + '\n')
 
 print "Final number of variants: ", len(variants1.columns)
@@ -374,10 +375,10 @@ print "Generating PED file..."
 
 # Create fields for PED file:
 isolate_family_ids = list(variants_final.index)
-sex = ["0"]*155
-phenotype =  ["-9"]*155
-pid = ["0"]*155
-mid = ["0"]*155
+sex = ["0"]*165
+phenotype =  ["-9"]*165
+pid = ["0"]*165
+mid = ["0"]*165
 
 variants_final.insert(0, "phenotype", value=phenotype)
 variants_final.insert(0, "sex", value=sex)
