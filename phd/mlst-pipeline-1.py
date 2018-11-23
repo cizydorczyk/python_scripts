@@ -5,6 +5,23 @@ from Bio.Seq import Seq
 
 parser = argparse.ArgumentParser()
 
+##################################################################################
+#  .-----------------. .----------------.  .----------------.  .----------------.
+# | .--------------. || .--------------. || .--------------. || .--------------. |
+# | | ____  _____  | || |     ____     | || |  _________   | || |  _________   | |
+# | ||_   \|_   _| | || |   .'    `.   | || | |  _   _  |  | || | |_   ___  |  | |
+# | |  |   \ | |   | || |  /  .--.  \  | || | |_/ | | \_|  | || |   | |_  \_|  | |
+# | |  | |\ \| |   | || |  | |    | |  | || |     | |      | || |   |  _|  _   | |
+# | | _| |_\   |_  | || |  \  `--'  /  | || |    _| |_     | || |  _| |___/ |  | |
+# | ||_____|\____| | || |   `.____.'   | || |   |_____|    | || | |_________|  | |
+# | |              | || |              | || |              | || |              | |
+# | '--------------' || '--------------' || '--------------' || '--------------' |
+#  '----------------'  '----------------'  '----------------'  '----------------'
+
+# All directories must be specified as full paths!
+
+###################################################################################
+
 # Required arguments:
 parser.add_argument("input_dir", help="Directory with input assemblies")
 parser.add_argument("project_dir", help="Directory for all output files. Will be created if doesn't exist.")
@@ -64,16 +81,17 @@ isolate_numbers = [i.split('.')[0] for i in input_file_list]
 
 
 ##############
-# Get STs from Torsten Seemann's mlst program:
+# Get STs using Torsten Seemann's mlst program:
 print("Getting STs from Torsten Seemann's mlst...")
 
-# output_ts_mlst = []
-#
-# for fasta_file in sorted(input_fasta_files):
-#     mlst_completed = subprocess.run(['mlst', '--quiet', '--nopath', fasta_file], stdout=subprocess.PIPE)
-#     output_ts_mlst.append(mlst_completed.stdout.decode('utf-8'))
-#
+output_ts_mlst = []
+
+for fasta_file in sorted(input_fasta_files):
+    mlst_completed = subprocess.run(['mlst', '--quiet', '--nopath', fasta_file], stdout=subprocess.PIPE)
+    output_ts_mlst.append(mlst_completed.stdout.decode('utf-8'))
+
 # print(''.join(output_ts_mlst))
+print("mlst done.")
 
 ##############
 # Perform MLSA/MLST:
@@ -83,6 +101,7 @@ if args.mlsa is True:
     print("Performing MLSA/MLST...")
 
     # Check if blastdb directory and databases exist:
+    # Blast will complain if dbs don't exist, so not doing it here...
 
     blastdb_dir = os.path.isdir(args.blastdbdir)
     if not blastdb_dir:
@@ -100,6 +119,7 @@ if args.mlsa is True:
     for fasta in input_fasta_files:
 
         isolate = fasta.split('/')[-1].split('.')[0]
+        print("Blasting isolate " + isolate + "...")
 
         os.mkdir(os.path.join(args.project_dir, isolate))
 
@@ -111,6 +131,8 @@ if args.mlsa is True:
                             '-num_threads', '8'])
 
     isolate_out_dirs = os.listdir(args.project_dir)
+
+    print("Generating MLSA fasta file...")
 
     for isolate in isolate_out_dirs:
         isolate_ = isolate.split('_')[0]
@@ -156,3 +178,23 @@ if args.mlsa is True:
 
         with open(os.path.join(args.project_dir, "mlsa_alignment.fasta"), 'a+') as outfile3:
             outfile3.write(">" + str(isolate_) + '|' + '|'.join(header) + '\n' + ''.join(sequence) + '\n')
+
+# Write TS's mlst results to file here so as to avoid problems navigating directories when creating 'gene_files' list...
+with open(os.path.join(args.project_dir, "TS_mlst_results.txt"), 'w') as outfile5:
+    outfile5.write(''.join(output_ts_mlst))
+
+print("MLST pipeline finished.")
+
+####################################################################################
+#  .----------------.  .----------------.  .----------------.  .-----------------. #
+# | .--------------. || .--------------. || .--------------. || .--------------. | #
+# | |     ______   | || |     _____    | || |     ____     | || | ____  _____  | | #
+# | |   .' ___  |  | || |    |_   _|   | || |   .'    `.   | || ||_   \|_   _| | | #
+# | |  / .'   \_|  | || |      | |     | || |  /  .--.  \  | || |  |   \ | |   | | #
+# | |  | |         | || |      | |     | || |  | |    | |  | || |  | |\ \| |   | | #
+# | |  \ `.___.'\  | || |     _| |_    | || |  \  `--'  /  | || | _| |_\   |_  | | #
+# | |   `._____.'  | || |    |_____|   | || |   `.____.'   | || ||_____|\____| | | #
+# | |              | || |              | || |              | || |              | | #
+# | '--------------' || '--------------' || '--------------' || '--------------' | #
+#  '----------------'  '----------------'  '----------------'  '----------------'  #
+####################################################################################
