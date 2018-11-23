@@ -20,6 +20,13 @@ parser = argparse.ArgumentParser()
 
 # All directories must be specified as full paths!
 
+# Caveats:
+#   The pipeline may fail if there are multiple hits per gene in an assembly. Haven't tested it out.
+#   The pipeline may fail if none of the existing genes are similar enough to novel genes; can add the '--type blastn'
+#       option to the blast command below to use more relaxed blasting criteria. Usually this shows up as truncations
+#       in an MLST gene...
+#   I should add a message in the help menu about requiring absolute paths...
+
 ###################################################################################
 
 # Required arguments:
