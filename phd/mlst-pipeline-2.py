@@ -2,6 +2,7 @@ import argparse
 import subprocess
 import os
 from Bio.Seq import Seq
+from Bio.Blast import NCBIXML
 
 parser = argparse.ArgumentParser()
 
@@ -20,14 +21,20 @@ parser = argparse.ArgumentParser()
 
 # All directories must be specified as full paths!
 
+# This pipeline uses Torsten Seemann's mlst program to get STs. It can also create a multiple sequence alignment of MLST
+#   loci, if given a fasta file for each gene in the MLST scheme containing all (or as many as you want) alleles.
+#   In short, this pipeline blasts alleles against an isolate database, keeping one hit per allele. It then takes the
+#   best hit based on the Blast SCORE and adds that into a multiple sequence alignment.
+#   Obviously there may be situations where this fails..but in simple cases, it should work.
+
 # Caveats:
 #   The pipeline may fail if there are multiple hits per gene in an assembly. Haven't tested it out.
 #   The pipeline may fail if none of the existing genes are similar enough to novel genes; can add the '--type blastn'
 #       option to the blast command below to use more relaxed blasting criteria. Usually this shows up as truncations
 #       in an MLST gene...
 #   I should add a message in the help menu about requiring absolute paths...
-#   Also not sure what will happen if a gene is split over 2 contigs...could be a better idea to blast MLST genes
-#       against isolate contigs db instead for this reason...but how to parse such a big output?
+#   A gene split over 2 contigs should be okay now...haven't tested it though, and don't know why this would happen in
+#       the first place...
 
 ###################################################################################
 
@@ -37,11 +44,13 @@ parser.add_argument("project_dir", help="Directory for all output files. Will be
 
 # Optional arguments:
 parser.add_argument("--mlsa", help="Create MLSA/MLST in addition to TS mlst?", action="store_true")
-parser.add_argument("--blastdbdir", default=None, help="Directory with blast databases (1 db/MLST gene) for \
-your species. DBs should be named with simply the gene name and nothing else, e.g. 'adk'. These MUST be made prior to \
- running this script.", action="store")
+# parser.add_argument("--blastdbdir", default=None, help="Directory with blast databases (1 db/MLST gene) for \
+# your species. DBs should be named with simply the gene name and nothing else, e.g. 'adk'. These MUST be made prior to \
+#  running this script.", action="store")
 parser.add_argument("--mlst_genes", default=None, help="Comma-separated list of MLST genes for your species. \
 E.g. adk,fumc,gyrb,icd,mdh,pura,reca .")
+parser.add_argument("--mlst_alleles_directory", help="Directory containing fasta files with all alleles per gene. 1 file"
+                                                     " per gene, named simply 'gene.fasta'.")
 
 args = parser.parse_args()
 
@@ -75,11 +84,13 @@ else:
 
 # Get list of files in input directory and remove any non-fasta files:
 input_file_list = os.listdir(args.input_dir)
-# # print(input_file_list)
+# print(input_file_list)
 # for file_ in input_file_list:
 #     if not file_.lower().endswith(('.fa', '.fasta', '.fna')):
 #         input_file_list.remove(file_)
+# print(input_file_list)
 
+# Get full paths to fasta files:
 input_fasta_files = []
 for fa in input_file_list:
     fasta_ = os.path.join(args.input_dir, fa)
@@ -107,86 +118,74 @@ print("mlst done.")
 
 if args.mlsa is True:
 
-    print("Performing MLSA/MLST...")
+    print("Performing MLSA...")
 
-    # Check if blastdb directory and databases exist:
-    # Blast will complain if dbs don't exist, so not doing it here...
+    print("Creating isolate Blast DBs...")
 
-    blastdb_dir = os.path.isdir(args.blastdbdir)
-    if not blastdb_dir:
-        raise OSError("Blastdb directory does not exist: %s" % args.blastdbdir)
-    else:
-        print('Blastdb directory:', args.blastdbdir)
+    for isolate_fasta in input_fasta_files:
+        subprocess.run(['makeblastdb', '-in', isolate_fasta, '-dbtype', 'nucl', '-out',
+                        os.path.join(args.input_dir, isolate_fasta.split('.')[0])])
 
-    # Get paths to Blast gene dbs:
+    print("Blasting MLST genes against isolate DBs...")
 
-    genes_list = args.mlst_genes.split(',')
-    gene_dbs = [os.path.join(args.blastdbdir, gene) for gene in genes_list]
+    mlst_genes = args.mlst_genes.split(',')
+    for isolate in isolate_numbers:
 
-    # Blast isolate assemblies agaisnt mlst gene dbs:
-
-    for fasta in input_fasta_files:
-
-        isolate = fasta.split('/')[-1].split('.')[0]
-        print("Blasting isolate " + isolate + "...")
-
+        # Make directory for each isolate for intermediate output files:
         os.mkdir(os.path.join(args.project_dir, isolate))
 
-        for db in gene_dbs:
-            gene = db.split('/')[-1]
-            subprocess.run(['blastn', '-db', db, '-query', fasta, '-out',
-                            os.path.join(args.project_dir, isolate, (isolate + "." + gene + ".txt")), '-outfmt',
-                            '6 sseqid sstrand qseqid qseq', '-evalue', '0.00001', '-max_target_seqs', '1',
-                            '-num_threads', '8'])
+        for gene in mlst_genes:
+            subprocess.run(['blastn', '-db', os.path.join(args.input_dir, isolate), '-query',
+                            os.path.join(args.mlst_alleles_directory, (gene + ".fasta")), '-out',
+                            os.path.join(args.project_dir, isolate, (isolate + "." + gene + ".xml")), '-outfmt',
+                            '5', '-num_threads', '8', '-max_hsps', '1'])
 
-    isolate_out_dirs = os.listdir(args.project_dir)
+        print("Parsing blast results for isolate %s" % isolate)
 
-    print("Generating MLSA fasta file...")
+        isolate_blast_files = os.listdir(os.path.join(args.project_dir, isolate))
 
-    for isolate in isolate_out_dirs:
-        isolate_ = isolate.split('_')[0]
-
-        # Combined genes list contains lines from each isolate's blast results for each gene:
         combined_genes_list = []
-        gene_files = os.listdir(os.path.join(args.project_dir, isolate))
 
-        for file_ in sorted(gene_files):
-            with open(os.path.join(args.project_dir, isolate, file_), 'r') as infile1:
-                for line in infile1:
-                    combined_genes_list.append(line)
+        for file_ in sorted(isolate_blast_files):
+            result_handle = open(os.path.join(args.project_dir, isolate, file_), 'r')
+            blast_records = NCBIXML.parse(result_handle)
+            best_score = 0
+            top_hit = ''
+            top_hit_seq = ''
+            contig = ''
+            for blast_record in blast_records:
+                for alignment in blast_record.alignments:
+                    for hsp in alignment.hsps:
+                        if hsp.score > best_score:
+                            best_score = hsp.score
+                            top_hit = blast_record.query
+                            top_hit_seq = hsp.sbjct
+                            contig = alignment.hit_def.split(' ')[0]
+            combined_genes_list.append(str(top_hit + "\t" + contig + "\t" + top_hit_seq))
 
         header = []
         sequence = []
-        # combined_genes_list.sort(key=lambda x: x[1])
 
         for line_ in sorted(combined_genes_list):
             split_line = line_.strip().split('\t')
 
-            header.append((split_line[0] + "," + split_line[2]))
-            if split_line[1] == 'minus':
-                sequence_ = Seq(split_line[3])
-                sequence.append(str(sequence_.reverse_complement()))
-                # print(split_line[0], sequence_.reverse_complement()[1:10])
-            else:
-                sequence.append(split_line[3])
-                # print('plus strand', split_line[0], split_line[3][1:10])
+            header.append((split_line[0] + "," + split_line[1]))
+            sequence.append(split_line[2])
 
         with open(os.path.join(args.project_dir, isolate, (isolate + ".concat_mlst_genes.fasta")), 'w') as outfile2:
             outfile2.write(">" + '|'.join(header) + '\n' + ''.join(sequence))
 
         with open(os.path.join(args.project_dir, isolate, (isolate + ".combined_mlst_genes.fasta")), 'w') as outfile1:
+
             to_write = []
             for line in combined_genes_list:
                 split_line = line.strip().split('\t')
-                if split_line[1] == 'minus':
-                    sequence_ = Seq(split_line[3]).reverse_complement()
-                else:
-                    sequence_ = split_line[3]
-                to_write.append(">" + split_line[0] + "|" + split_line[2] + '\n' + str(sequence_) + '\n')
+                to_write.append(">" + split_line[0] + "|" + split_line[1] + '\n' + split_line[2] + '\n')
+
             outfile1.write(''.join(to_write))
 
         with open(os.path.join(args.project_dir, "mlsa_alignment.fasta"), 'a+') as outfile3:
-            outfile3.write(">" + str(isolate_) + '|' + '|'.join(header) + '\n' + ''.join(sequence) + '\n')
+            outfile3.write(">" + str(isolate.split('_')[0]) + '|' + '|'.join(header) + '\n' + ''.join(sequence) + '\n')
 
 # Write TS's mlst results to file here so as to avoid problems navigating directories when creating 'gene_files' list...
 with open(os.path.join(args.project_dir, "TS_mlst_results.txt"), 'w') as outfile5:
