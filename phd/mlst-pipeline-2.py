@@ -185,7 +185,7 @@ if args.mlsa is True:
             outfile1.write(''.join(to_write))
 
         with open(os.path.join(args.project_dir, "mlsa_alignment.fasta"), 'a+') as outfile3:
-            outfile3.write(">" + str(isolate.split('_')[0]) + '|' + '|'.join(header) + '\n' + ''.join(sequence) + '\n')
+            outfile3.write(">" + str(isolate.split('_')[0]) + '\n' + ''.join(sequence) + '\n')
 
 # Write TS's mlst results to file here so as to avoid problems navigating directories when creating 'gene_files' list...
 with open(os.path.join(args.project_dir, "TS_mlst_results.txt"), 'w') as outfile5:
