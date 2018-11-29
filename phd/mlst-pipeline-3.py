@@ -3,6 +3,8 @@ import subprocess
 import os
 from Bio.Seq import Seq
 from Bio.Blast import NCBIXML
+from progress.bar import Bar
+
 
 parser = argparse.ArgumentParser()
 
@@ -26,6 +28,8 @@ parser = argparse.ArgumentParser()
 #   In short, this pipeline blasts alleles against an isolate database, keeping one hit per allele. It then takes the
 #   best hit based on the Blast SCORE and adds that into a multiple sequence alignment.
 #   Obviously there may be situations where this fails..but in simple cases, it should work.
+#
+# The pipeline now (should) handle isolates with missing/truncated alleles. It also has progress bars...
 
 # Caveats:
 #   The pipeline may fail if there are multiple hits per gene in an assembly. Haven't tested it out.
@@ -105,21 +109,25 @@ isolate_numbers = [i.split('.')[0] for i in input_file_list]
 # Get STs using Torsten Seemann's mlst program:
 print("Getting STs from Torsten Seemann's mlst...")
 
+bar = Bar('Progress:', max=len(input_fasta_files), width=100)
+
 output_ts_mlst = []
 
-if args.scheme == '':
-
-    for fasta_file in sorted(input_fasta_files):
-        mlst_completed = subprocess.run(['mlst', '--threads', '8','--quiet', '--nopath', fasta_file], stdout=subprocess.PIPE)
+# for i in range(mlst_iter):
+    # Do some work
+for fasta_file in sorted(input_fasta_files):
+    if args.scheme == '':
+        mlst_completed = subprocess.run(['mlst', '--threads', '8', '--quiet', '--nopath', fasta_file],
+                                        stdout=subprocess.PIPE)
         output_ts_mlst.append(mlst_completed.stdout.decode('utf-8'))
-
-else:
-    for fasta_file in sorted(input_fasta_files):
-        mlst_completed = subprocess.run(['mlst', '--threads', '8', '--scheme', args.scheme, '--quiet', '--nopath', fasta_file], stdout=subprocess.PIPE)
+    else:
+        mlst_completed = subprocess.run(
+            ['mlst', '--threads', '8', '--scheme', args.scheme, '--quiet', '--nopath', fasta_file],
+            stdout=subprocess.PIPE)
         output_ts_mlst.append(mlst_completed.stdout.decode('utf-8'))
+    bar.next()
+bar.finish()
 
-
-# print(''.join(output_ts_mlst))
 print("mlst done.")
 
 ##############
@@ -135,7 +143,9 @@ if args.mlsa is True:
         subprocess.run(['makeblastdb', '-in', isolate_fasta, '-dbtype', 'nucl', '-out',
                         os.path.join(args.input_dir, isolate_fasta.split('.')[0])])
 
-    print("Blasting MLST genes against isolate DBs...")
+    print("Performing MLSA Blast Analysis...")
+
+    bar2 = Bar("Progress:", max=len(isolate_numbers), width=100)
 
     mlst_genes = args.mlst_genes.split(',')
     for isolate in isolate_numbers:
@@ -149,13 +159,14 @@ if args.mlsa is True:
                             os.path.join(args.project_dir, isolate, (isolate + "." + gene + ".xml")), '-outfmt',
                             '5', '-num_threads', '8', '-max_hsps', '1'])
 
-        print("Parsing blast results for isolate %s" % isolate)
+        # print("Parsing blast results for isolate %s" % isolate)
 
         isolate_blast_files = os.listdir(os.path.join(args.project_dir, isolate))
 
         combined_genes_list = []
 
         for file_ in sorted(isolate_blast_files):
+            # print("\t" + file_)
             result_handle = open(os.path.join(args.project_dir, isolate, file_), 'r')
             blast_records = NCBIXML.parse(result_handle)
             best_score = 0
@@ -163,13 +174,24 @@ if args.mlsa is True:
             top_hit_seq = ''
             contig = ''
             for blast_record in blast_records:
-                for alignment in blast_record.alignments:
-                    for hsp in alignment.hsps:
-                        if hsp.score > best_score:
-                            best_score = hsp.score
-                            top_hit = blast_record.query
-                            top_hit_seq = hsp.sbjct
-                            contig = alignment.hit_def.split(' ')[0]
+                if blast_record.alignments:
+                    for alignment in blast_record.alignments:
+                        for hsp in alignment.hsps:
+                            if hsp.score > best_score:
+                                best_score = hsp.score
+                                top_hit = blast_record.query
+                                top_hit_seq = hsp.sbjct
+
+                                # Test for truncations/indels:
+                                gene_length = blast_record.query_length
+                                if len(str(top_hit_seq)) < gene_length:
+                                    top_hit = top_hit + "_TRUNCATED"
+
+                                contig = alignment.hit_def.split(' ')[0]
+                elif not blast_record.alignments and best_score is 0:
+                    top_hit = blast_record.query + "_MISSING"
+                    contig = "NA"
+
             combined_genes_list.append(str(top_hit + "\t" + contig + "\t" + top_hit_seq))
 
         header = []
@@ -177,9 +199,11 @@ if args.mlsa is True:
 
         for line_ in sorted(combined_genes_list):
             split_line = line_.strip().split('\t')
-
-            header.append((split_line[0] + "," + split_line[1]))
-            sequence.append(split_line[2])
+            if len(split_line) == 3:
+                header.append((split_line[0] + "," + split_line[1]))
+                sequence.append(split_line[2])
+            elif len(split_line) == 2:
+                header.append((split_line[0] + "," + split_line[1]))
 
         with open(os.path.join(args.project_dir, isolate, (isolate + ".concat_mlst_genes.fasta")), 'w') as outfile2:
             outfile2.write(">" + '|'.join(header) + '\n' + ''.join(sequence))
@@ -189,12 +213,18 @@ if args.mlsa is True:
             to_write = []
             for line in combined_genes_list:
                 split_line = line.strip().split('\t')
-                to_write.append(">" + split_line[0] + "|" + split_line[1] + '\n' + split_line[2] + '\n')
+                if len(split_line) == 3:
+                    to_write.append(">" + split_line[0] + "|" + split_line[1] + '\n' + split_line[2] + '\n')
+                elif len(split_line) == 2:
+                    to_write.append(">" + split_line[0] + "|" + split_line[1] + '\n')
 
             outfile1.write(''.join(to_write))
 
         with open(os.path.join(args.project_dir, "mlsa_alignment.fasta"), 'a+') as outfile3:
-            outfile3.write(">" + str(isolate.split('_')[0]) + '\n' + ''.join(sequence) + '\n')
+            outfile3.write(">" + isolate + "\t" + '|'.join(header) + '\n' + ''.join(sequence) + '\n')
+
+        bar2.next()
+bar2.finish()
 
 # Write TS's mlst results to file here so as to avoid problems navigating directories when creating 'gene_files' list...
 with open(os.path.join(args.project_dir, "TS_mlst_results.txt"), 'w') as outfile5:
