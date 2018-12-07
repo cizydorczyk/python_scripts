@@ -22,6 +22,7 @@ parser = argparse.ArgumentParser()
 #  '----------------'  '----------------'  '----------------'  '----------------'
 
 # All directories must be specified as full paths!
+# blastn and mlst must be in path!!
 
 # This pipeline uses Torsten Seemann's mlst program to get STs. It can also create a multiple sequence alignment of MLST
 #   loci, if given a fasta file for each gene in the MLST scheme containing all (or as many as you want) alleles.
