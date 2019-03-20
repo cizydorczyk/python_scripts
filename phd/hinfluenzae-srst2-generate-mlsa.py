@@ -4,13 +4,13 @@ import os.path
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("input_mlst", help="input file from mlst program")
-parser.add_argument("mlst_genes", help='comma separated list (lower case) of mlst genes in scheme; alphabetical order')
-parser.add_argument("mlst_alleles_directory", help='directory with fasta files for each gene with all alleles, named'
+parser.add_argument("--input_mlst", help="input file from mlst program")
+parser.add_argument("--mlst_genes", help='comma separated list (lower case) of mlst genes in scheme; alphabetical order')
+parser.add_argument("--mlst_alleles_directory", help='directory with fasta files for each gene with all alleles, named'
                                                    '"gene.fasta" where gene is the lowercase gene name same as in '
                                                    'mlst_genes')
-parser.add_argument("output_mlsa_alignment", help="main output file")
-parser.add_argument("nontyped_isolates", help="file with isolate records from SRST2 that could not be typed with "
+parser.add_argument("--output_mlsa_alignment", help="main output file")
+parser.add_argument("--nontyped_isolates", help="file with isolate records from SRST2 that could not be typed with "
                                               "certainty")
 
 
@@ -65,7 +65,7 @@ with open(args.input_mlst, 'r') as infile1:
     raw_mlst_data = list(infile1)
     header_line = raw_mlst_data[0]
     raw_mlst_data = raw_mlst_data[1:]
-
+print(dict1)
 for line in raw_mlst_data:
     line_ = line.strip().split('\t')
     alleles = ''.join(line_[2:9])
