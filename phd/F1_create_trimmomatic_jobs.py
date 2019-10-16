@@ -1,14 +1,18 @@
 import argparse
+import os
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--nt", help="number of threads to use (<= 56)")
 parser.add_argument("--walle", help="walltime estimate HH:MM")
 parser.add_argument("--wallm", help="walltime max HH:MM")
-parser.add_argument("--fastq_dir", help="dir with fastq files")
-parser.add_argument("--output_dir", help="output dir")
+parser.add_argument("--fastq_dir", help="Synergy dir with fastq files, must end with '/'")
+parser.add_argument("--output_dir", help="Synergy output dir, must end with '/'")
 parser.add_argument("--isolate", help="isolate name/number")
 parser.add_argument("--job_file", help="output job file")
+parser.add_argument("--crop", help="length to crop reads to (250, 300, etc.)", default=300)
+parser.add_argument("--minlen", help="minimum length for reads after trimming", default=30)
+parser.add_argument("--minqual", help="minimum quality for 4 bp sliding window", default=5)
 
 args = parser.parse_args()
 
@@ -36,7 +40,7 @@ header1_l11 = '#BSUB -e ' + project_dir + args.isolate + '.err' + '\n'
 
 header1 = header1_l1 + header1_l2 + header1_l3 + header1_l4 + header1_l5 + header1_l7 + header1_l8 + header1_l9 + header1_l10 + header1_l11 + '\n'
 
-trim_cmd = "trimmomatic PE -threads " + args.nt + " " + args.fastq_dir + args.isolate + "1.fq" + " " + args.fastq_dir + args.isolate + "2.fq" + " " + args.output_dir + args.isolate + "_1.fastq.gz" + " " + args.output_dir + args.isolate + "_unpaired_1.fastq.gz" + " " + args.output_dir + args.isolate + "_2.fastq.gz" + " " + args.output_dir + args.isolate + "_unpaired_2.fastq.gz ILLUMINACLIP:/home/cizydorczyk/NexteraPE-PE.fa:2:30:10:8:true CROP:250 SLIDINGWINDOW:4:5 MINLEN:10"
+trim_cmd = "trimmomatic PE -threads " + args.nt + " " + args.fastq_dir + args.isolate + "_1.fastq.gz" + " " + args.fastq_dir + args.isolate + "_2.fastq.gz" + " " + args.output_dir + args.isolate + "_1.fastq.gz" + " " + args.output_dir + args.isolate + "_u_1.fastq.gz" + " " + args.output_dir + args.isolate + "_2.fastq.gz" + " " + args.output_dir + args.isolate + "_u_2.fastq.gz ILLUMINACLIP:/home/cizydorczyk/NexteraPE-PE.fa:2:30:10:8:true CROP:" + args.crop +" SLIDINGWINDOW:4:" + args.minqual + " MINLEN:" + args.minlen
 
 with open(args.job_file, 'w') as outfile:
     outfile.write(header1 + trim_cmd)

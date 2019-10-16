@@ -40,7 +40,7 @@ header1_l11 = '#BSUB -e ' + project_dir + args.isolate + '.err' + '\n'
 
 header1 = header1_l1 + header1_l2 + header1_l3 + header1_l4 + header1_l5 + header1_l7 + header1_l8 + header1_l9 + header1_l10 + header1_l11 + '\n'
 
-snippy_cmd = "snippy --cpus 28 --ram " + snippy_ram + " --outdir " + snps_dir + " --ref " + args.ref + " --R1 " + args.fastq_dir + args.isolate + "_1.fastq.gz --R2 " + args.fastq_dir + args.isolate + "_2.fastq.gz --minfrac " + args.minfrac
+snippy_cmd = "snippy --cpus " + args.nt + " --ram " + snippy_ram + " --outdir " + snps_dir + " --ref " + args.ref + " --R1 " + args.fastq_dir + args.isolate + "_1.fastq.gz --R2 " + args.fastq_dir + args.isolate + "_2.fastq.gz --minfrac " + args.minfrac
 
 with open(args.job_file, 'w') as outfile:
     outfile.write(header1 + snippy_cmd)

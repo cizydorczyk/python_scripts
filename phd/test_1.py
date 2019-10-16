@@ -1,13 +1,11 @@
-file1 = "/home/conrad/ncbi_ecoli_genomes/clade_assemblies/all_clades_strains.txt"
-
-isolate_files = []
-
-with open(file1, 'r') as infile1:
+isolates = []
+with open("/home/conrad/smaltophilia/ncbi_genomes/partial_and_complete_genomes/sm_partial_and_complete_genomes_list.txt", 'r') as infile1:
     for line in infile1:
-        isolate_files.append('_'.join(line.strip().split('_')[0:2]))
+        if line.startswith("GCF"):
+            line_elements = line.strip().split("_")
+            isolate = line_elements[0] + "_" + line_elements[1] + "_" + line_elements[2]
+            isolates.append(isolate)
 
-isolates_set = sorted(list(set(isolate_files)))
-
-with open("/home/conrad/ncbi_ecoli_genomes/clade_assemblies/all_clades.txt", 'w') as outfile1:
-    to_write = '\n'.join(isolates_set)
+with open("/home/conrad/smaltophilia/ncbi_genomes/partial_and_complete_genomes/sm_partial_and_complete_genomes_list2.txt", 'w') as outfile1:
+    to_write = "\n".join(isolates)
     outfile1.write(to_write)
