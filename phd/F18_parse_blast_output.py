@@ -8,14 +8,13 @@ parser = argparse.ArgumentParser()
 # General required arguments:
 parser.add_argument("--raw_blast_input_file", help="raw blast output to parse")
 parser.add_argument("--parsed_blast_output_file", help="parsed blast output file")
+parser.add_argument("--target_genus", help="genus of contigs to keep")
 
 args = parser.parse_args()
 
 def ParseBlastOutput(raw_blast_input_file, parsed_blast_output_file):
-    """Function to parse raw contig blast output on Synergy."""
+    """Function to parse raw contig blast output."""
 
-    contig_list = []
-    no_result_contig_list = []
     query_list = []
     fill_color = []
     out_color = []
@@ -37,7 +36,7 @@ def ParseBlastOutput(raw_blast_input_file, parsed_blast_output_file):
                 contig_depths.append(float(line_elements[4].split("=")[1][0:-1]))
 
                 for line in contents:
-                    if line.startswith(contig_num + '\t') and ("Haemophilus" in line):
+                    if line.startswith(contig_num + '\t') and (args.target_genus in line):
                         fill_color.append("deepskyblue")
                         out_color.append("blue")
                         break
@@ -90,8 +89,6 @@ def ParseBlastOutput(raw_blast_input_file, parsed_blast_output_file):
 ParseBlastOutput(args.raw_blast_input_file, args.parsed_blast_output_file)
 
 ##### Testing code outside function (for ease of testing) below #####
-# contig_list = []
-# no_result_contig_list = []
 #
 # with open("/home/conrad/hinfluenzae/assembly_pipeline_testing/blast/raw_blast_output/A058-H09-28-09-2012_raw_blast_output.txt", 'r') as infile:
 #     contents = list(infile)

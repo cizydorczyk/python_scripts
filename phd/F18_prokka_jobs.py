@@ -20,7 +20,7 @@ def CreateProkkaJob(s_prokka_dir, s_final_assemblies_dir, prokka_jobs_dir, isola
               header1_l11 + '\n'
 
     # Prokka input/output files:
-    isolate_assembly = s_final_assemblies_dir + "/" + isolate + "_final_assembly.fasta"
+    isolate_assembly = s_final_assemblies_dir + "/" + isolate + "_filtered_ordered_assembly.fasta"
     output_dir = os.path.join(s_prokka_dir, isolate)
 
     # Set rnammer status:
@@ -42,7 +42,7 @@ def CreateProkkaJob(s_prokka_dir, s_final_assemblies_dir, prokka_jobs_dir, isola
         proteins_file_ = ""
 
     # Prokka cmd:
-    prokka_cmd = "prokka --outdir " + output_dir + " --prefix " + isolate + " --kingdom " + kingdom + " --gcode " + str(gcode) + " --genus " + genus + " --species " + species + proteins_file_ + " --cpus " + str(nt) + rnammer_ + use_genus_ + " --rfam -- addgenes --locustag " + isolate + " --mincontiglen " + str(mincontiglen) + " " + isolate_assembly
+    prokka_cmd = "prokka --outdir " + output_dir + " --prefix " + isolate + " --kingdom " + kingdom + " --gcode " + str(gcode) + " --genus " + genus + " --species " + species + proteins_file_ + " --cpus " + str(nt) + rnammer_ + use_genus_ + " --rfam --addgenes --locustag " + isolate + " --mincontiglen " + str(mincontiglen) + " " + isolate_assembly
 
 
     # Write job file:

@@ -9,7 +9,7 @@ parser.add_argument("--fastq_dir", help="dir with fastq files on Synergy")
 parser.add_argument("--project_dir", help="output dir")
 parser.add_argument("--isolate_list", help="isolate list, one isolate per line")
 parser.add_argument("--gz", help="gzipped reads? yes or no, default = 'yes'", default='yes')
-parser.add_argument("--fastq_endings", help="ending indicating fastq forward/reverse reads, e.g. _1.fastq/_2.fastq Default = '_1,_2'.", default='_1.fastq,_2.fastq')
+parser.add_argument("--fastq_endings", help="ending indicating fastq forward/reverse reads, e.g. _1.fastq/_2.fastq Default = '_1.fastq,_2.fastq'.", default='_1.fastq,_2.fastq')
 parser.add_argument("--assembler", help="assembler to use; currently only 'unicycler' (default) is supported.", default = "unicycler")
 
 # Synergy options (required):
@@ -89,10 +89,27 @@ if not os.path.exists(os.path.join(args.project_dir, "blast", "parsed_blast_outp
     os.mkdir(os.path.join(args.project_dir, "blast", "parsed_blast_output"))
 s_blast_parsed_output_dir = os.path.join(synergy_project_dir, "blast", "parsed_blast_output")
 
+# Filtered assembly directories:
+if not os.path.exists(os.path.join(args.project_dir, "filtered_assemblies")):
+    os.mkdir(os.path.join(args.project_dir, "filtered_assemblies"))
+s_filtered_assemblies_dir = os.path.join(synergy_project_dir, "filtered_assemblies")
+
+if not os.path.exists(os.path.join(args.project_dir, "filtered_assemblies", "contig_len_and_blast_filtered_assemblies")):
+    os.mkdir(os.path.join(args.project_dir, "filtered_assemblies", "contig_len_and_blast_filtered_assemblies"))
+s_contig_len_and_blast_filtered_assemblies_dir = os.path.join(synergy_project_dir, "filtered_assemblies", "contig_len_and_blast_filtered_assemblies")
+
+if not os.path.exists(os.path.join(args.project_dir, "filtered_assemblies", "mauve_ordered_assemblies")):
+    os.mkdir(os.path.join(args.project_dir, "filtered_assemblies", "mauve_ordered_assemblies"))
+s_contig_len_and_blast_filtered_assemblies_dir = os.path.join(synergy_project_dir, "filtered_assemblies", "mauve_ordered_assemblies")
+
+if not os.path.exists(os.path.join(args.project_dir, "filtered_assemblies", "final_assemblies")): # Final assemblies directory:
+    os.mkdir(os.path.join(args.project_dir, "filtered_assemblies", "final_assemblies"))
+s_final_assemblies_dir = os.path.join(synergy_project_dir, "filtered_assemblies", "final_assemblies")
+
 # Prokka directories:
-if not os.path.exists(os.path.join(args.project_dir, "prokka")):
-    os.mkdir(os.path.join(args.project_dir, "prokka"))
-s_prokka_dir = os.path.join(synergy_project_dir, "prokka")
+if not os.path.exists(os.path.join(args.project_dir, "prokka_annotations")):
+    os.mkdir(os.path.join(args.project_dir, "prokka_annotations"))
+s_prokka_dir = os.path.join(synergy_project_dir, "prokka_annotations")
 
 # Contig coverage directories:
 # if not os.path.exists(os.path.join(args.project_dir, "contig_coverage")):
@@ -123,11 +140,6 @@ prokka_jobs_dir = os.path.join(jobfiles_dir, "prokka_jobs")
 # if not os.path.exists(os.path.join(jobfiles_dir, "contig_coverage_jobs")):
 #     os.mkdir(os.path.join(jobfiles_dir, "contig_coverage_jobs"))
 # contig_coverage_jobs_dir = os.path.join(jobfiles_dir, "contig_coverage_jobs")
-
-# Final assemblies directory:
-if not os.path.exists(os.path.join(args.project_dir, "final_assemblies")):
-    os.mkdir(os.path.join(args.project_dir, "final_assemblies"))
-s_final_assemblies_dir = os.path.join(synergy_project_dir, "final_assemblies")
 
 ### Create Unicycler jobs ###
 import F18_unicycler_jobs
