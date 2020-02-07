@@ -1,6 +1,6 @@
 import os
 
-def CreateQuastJobs(quast_dir, unicycler_dir, jobs_dir, isolate_list, nt, walle, wallm, mem, mem_max, assembler):
+def CreateQuastJobs(quast_dir, assembler_dir, jobs_dir, isolate_list, nt, walle, wallm, mem, mem_max, assembler):
     """Function to create a job to run QUAST on a set of de novo assemblies."""
 
     # Header:
@@ -22,13 +22,16 @@ def CreateQuastJobs(quast_dir, unicycler_dir, jobs_dir, isolate_list, nt, walle,
     isolate_assemblies = []
     for isolate in isolate_list:
         if assembler == "unicycler":
-            isolate_assembly = unicycler_dir + "/" + isolate + "/" + isolate + "_assembly.fasta"
+            isolate_assembly = assembler_dir + "/" + isolate + "/" + isolate + "_assembly.fasta"
+            isolate_assemblies.append(isolate_assembly)
+        elif assembler == "spades":
+            isolate_assembly = assembler_dir + "/" + isolate + "/" + isolate + "_assembly.fasta"
             isolate_assemblies.append(isolate_assembly)
         else:
-            raise Exception("only unicycler is currently supported as an assembler.")
+            raise Exception("only unicycler or spades are currently supported as an assembler.")
 
     # QUAST cmd:
-    quast_cmd = "quast.py -o " + quast_dir + " -t " + str(nt) + " " + " ".join(isolate_assemblies)
+    quast_cmd = "quast.py --min-contig 0 -o " + quast_dir + " -t " + str(nt) + " " + " ".join(isolate_assemblies)
     #print(quast_cmd)
 
     # Create QUAST job:

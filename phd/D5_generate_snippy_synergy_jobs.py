@@ -13,6 +13,7 @@ parser.add_argument("--isolate", help="isolate name/number")
 parser.add_argument("--job_file", help="output job file")
 parser.add_argument("--ref", help="reference fasta")
 parser.add_argument("--minfrac", help="snippy minfrac argument")
+parser.add_argument("--cleanup", help=" run snippy --cleanup? yes or no")
 
 args = parser.parse_args()
 
@@ -35,12 +36,18 @@ header1_l5 = '#BSUB -R "rusage[mem=' + str(mem) + ']"' + '\n'
 header1_l7 = '#BSUB -M ' + str(mem_max) + '\n'
 header1_l8 = '#BSUB -We ' + args.walle + '\n'
 header1_l9 = '#BSUB -W ' + args.wallm + '\n'
-header1_l10 = '#BSUB -o ' + project_dir + args.isolate + '.out' + '\n'
-header1_l11 = '#BSUB -e ' + project_dir + args.isolate + '.err' + '\n'
+header1_l10 = '#BSUB -o ' + project_dir + args.isolate + "/" + args.isolate + '.out' + '\n'
+header1_l11 = '#BSUB -e ' + project_dir + args.isolate + "/" + args.isolate + '.err' + '\n'
 
 header1 = header1_l1 + header1_l2 + header1_l3 + header1_l4 + header1_l5 + header1_l7 + header1_l8 + header1_l9 + header1_l10 + header1_l11 + '\n'
 
-snippy_cmd = "snippy --cpus " + args.nt + " --ram " + snippy_ram + " --outdir " + snps_dir + " --ref " + args.ref + " --R1 " + args.fastq_dir + args.isolate + "_1.fastq.gz --R2 " + args.fastq_dir + args.isolate + "_2.fastq.gz --minfrac " + args.minfrac
+# Check if running snippy cleanup:
+if args.cleanup == "yes":
+    snippy_cleanup = "--cleanup"
+elif args.cleanup == "no":
+    snippy_cleanup = ""
+
+snippy_cmd = "snippy --cpus " + args.nt + " --ram " + snippy_ram + " --outdir " + snps_dir + " --ref " + args.ref + " --R1 " + args.fastq_dir + args.isolate + "_1.fastq.gz --R2 " + args.fastq_dir + args.isolate + "_2.fastq.gz --minfrac " + args.minfrac + " " + snippy_cleanup
 
 with open(args.job_file, 'w') as outfile:
     outfile.write(header1 + snippy_cmd)

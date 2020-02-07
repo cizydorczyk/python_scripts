@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--raw_blast_input_file", help="raw blast output to parse")
 parser.add_argument("--parsed_blast_output_file", help="parsed blast output file")
 parser.add_argument("--target_genus", help="genus of contigs to keep")
+parser.add_argument("--assembler", help="spades or unicycler")
 
 args = parser.parse_args()
 
@@ -26,32 +27,67 @@ def ParseBlastOutput(raw_blast_input_file, parsed_blast_output_file):
 
     for lnum, line in enumerate(contents):
         if "# Query" in line:
-            if (lnum+4) < len(contents): # ensures we don't read past end of file
 
-                line_elements = line.strip().split(" ")
-                contig_num = line_elements[2]
-                query_list.append(contig_num)
+            if args.assembler == "unicycler":
 
-                contig_lengths.append(line_elements[3].split("=")[1])
-                contig_depths.append(float(line_elements[4].split("=")[1][0:-1]))
+                if (lnum+4) <= len(contents): # ensures we don't read past end of file; added = sign because script wouldnt work for spades unless i added it below so also added here...may not work (untested)
 
-                for line in contents:
-                    if line.startswith(contig_num + '\t') and (args.target_genus in line):
-                        fill_color.append("deepskyblue")
-                        out_color.append("blue")
-                        break
+                    line_elements = line.strip().split(" ")
+                    contig_num = line_elements[2]
+                    query_list.append(contig_num)
+
+                    contig_lengths.append(line_elements[3].split("=")[1])
+                    contig_depths.append(float(line_elements[4].split("=")[1][0:-1]))
+
+                    for line in contents:
+                        if line.startswith(contig_num + '\t') and (args.target_genus in line):
+                            fill_color.append("deepskyblue")
+                            out_color.append("blue")
+                            break
+
+                    else:
+                        fill_color.append("red")
+                        out_color.append("red4")
 
                 else:
+                    query_list.append(line.strip().split(' ')[-1])
                     fill_color.append("red")
                     out_color.append("red4")
 
-            else:
-                query_list.append(line.strip().split(' ')[-1])
-                fill_color.append("red")
-                out_color.append("red4")
+            elif args.assembler == "spades":
+
+                if (lnum+4) <= len(contents): # ensures we don't read past end of file
+
+                    line_elements = line.strip().split(" ")
+                    contig_num = line_elements[2]
+                    query_list.append(contig_num)
+
+                    contig_lengths.append(line_elements[2].split("_")[3])
+                    contig_depths.append(float(line_elements[2].split("_")[5]))
+
+                    for line in contents:
+                        if line.startswith(contig_num + '\t') and (args.target_genus in line):
+                            fill_color.append("deepskyblue")
+                            out_color.append("blue")
+                            break
+
+                    else:
+                        fill_color.append("red")
+                        out_color.append("red4")
+
+                else:
+                    query_list.append(line.strip().split(' ')[-1])
+                    fill_color.append("red")
+                    out_color.append("red4")
+
 
     data = collections.OrderedDict([('Contig', query_list), ('Length', contig_lengths), ('Coverage', contig_depths),
                                     ('Color', fill_color), ('Outline', out_color)])
+    # print(len(query_list))
+    # print(len(fill_color))
+    # print(len(out_color))
+    # print(len(contig_lengths))
+    # print(len(contig_depths))
 
     df = pandas.DataFrame(data)
 

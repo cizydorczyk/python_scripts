@@ -1,6 +1,6 @@
 import os
 
-def CreateBlastJob(s_blast_raw_output_dir, s_unicycler_assemblies_dir, blast_jobs_dir, isolate, nt, walle, wallm, mem, mem_max, evalue):
+def CreateBlastJob(s_blast_raw_output_dir, s_assemblies_dir, blast_jobs_dir, isolate, nt, walle, wallm, mem, mem_max, evalue):
     """Function to create a job to run BLAST on a set of de novo assemblies."""
 
     # Header:
@@ -22,7 +22,7 @@ def CreateBlastJob(s_blast_raw_output_dir, s_unicycler_assemblies_dir, blast_job
     # Blast cmd:
     export_db_cmd = "export BLASTDB=/home/cizydorczyk/blastdb"
 
-    isolate_assembly = s_unicycler_assemblies_dir + "/" + isolate + "/" + isolate + "_assembly.fasta"
+    isolate_assembly = s_assemblies_dir + "/" + isolate + "/" + isolate + "_assembly.fasta"
     isolate_raw_blast_output = s_blast_raw_output_dir + "/" + isolate + '_raw_blast_output.txt'
 
     blast_cmd = "blastn -db /home/cizydorczyk/blastdb/nt -query " + isolate_assembly + " -evalue " + str(evalue) + " -out " + isolate_raw_blast_output + ' -outfmt "7 qseqid sseqid pident length evalue sscinames" -num_threads ' + str(nt)
