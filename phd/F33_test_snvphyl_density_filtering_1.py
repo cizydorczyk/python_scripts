@@ -47,7 +47,7 @@ for i in range(1,len(ref)+1):
         to_drop = to_drop + pos_in_window
 
 print(len(vcf_dict))
-print(len(to_drop))
+print(len(set(to_drop)))
 
 for key in set(to_drop):
     vcf_dict.pop(str(key))

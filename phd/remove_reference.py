@@ -5,13 +5,13 @@ from Bio import SeqIO
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--aln", help="alignment to remove reference from")
+parser.add_argument("--fasta", help="alignment to remove reference from")
 parser.add_argument("--out", help="output fasta file with no reference sequence")
 
 args = parser.parse_args()
 
-records = list(SeqIO.parse(args.aln, "fasta"))
-records2 = [i for i in records if i.id != "Reference"]
+records = list(SeqIO.parse(args.fasta, "fasta"))
+records2 = [i for i in records if i.id.lower() != "reference"]
 for i in records2:
 	print(i.id)
 
