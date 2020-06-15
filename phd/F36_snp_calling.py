@@ -24,6 +24,7 @@ parser.add_argument("--run_cfml", action="store_true")
 parser.add_argument("--clean_snippy_core_full_aln", action="store_true")
 parser.add_argument("--remove_ref", action="store_true")
 parser.add_argument("--create_raw_matrices", action="store_true")
+parser.add_argument("--own_reference", action="store_true")
 
 args = parser.parse_args()
 
@@ -35,15 +36,28 @@ with open(args.isolate_list, 'r') as infile1:
 
 # Create indicator as to whether reference genome should be kept in SNP tables, etc. or not
 # CFML requires at least 3 isolates, so if only 2 are present, keep ref as 3rd to remove recombination
-if len(isolate_list) < 3:
-    run_bs = False
-    remove_ref = False
-elif len(isolate_list) == 3:
-    run_bs = False
-    remove_ref = True
-elif len(isolate_list) > 3:
-    run_bs = True
-    remove_ref = True
+
+if args.own_reference:
+    if len(isolate_list) < 3:
+        print("Too few isolates to run pipeline with own reference, quitting pipeline.")
+        sys.exit()
+    elif len(isolate_list) == 3:
+        run_bs = False
+        remove_ref = True
+    elif len(isolate_list) > 3:
+        run_bs = True
+        remove_ref = True
+
+elif not args.own_reference:
+    if len(isolate_list) < 3:
+        run_bs = False
+        remove_ref = False
+    elif len(isolate_list) == 3:
+        run_bs = False
+        remove_ref = True
+    elif len(isolate_list) > 3:
+        run_bs = True
+        remove_ref = True
 
 ## Create directory structure:
 
@@ -127,7 +141,7 @@ if remove_ref == True:
         no_ref_clean_fasta = snippy_core_all_isolates_dir + "/clean." + args.st + ".full.aln"
 
 elif remove_ref == False:
-    print("Skipping removing reference as only 2 isolates present...")
+    print("Skipping removing reference...")
     no_ref_clean_fasta = snippy_core_all_isolates_dir + "/clean." + args.st + ".full.aln"
 
 ## Create SNP distances matrix for all & core SNPs before removing recombinant sites:
