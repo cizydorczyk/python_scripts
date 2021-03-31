@@ -15,7 +15,7 @@ with open(args.isolate_list, 'r') as infile0:
         isolate_list.append(line.strip())
 
 input_data = pd.read_csv(filepath_or_buffer = args.input_file, sep="\t", header=0, index_col=0)
-input_data = input_data[input_data["num_genomes_gene_cluster_has_hits"] < 17]
+input_data = input_data[input_data["num_genomes_gene_cluster_has_hits"] < len(isolate_list)]
 
 gene_clusters = sorted(list(set(input_data["gene_cluster_id"])))
 
