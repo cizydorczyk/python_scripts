@@ -58,19 +58,25 @@ with open(args.input_vcf, 'r') as infile1:
                 vcf_variant_obj = VcfVariant(args.isolate, line_list[0], line_list[1], line_list[3], line_list[4], args.input_vcf)
                 deletions.append(vcf_variant_obj)
             elif len(line_list[4]) > 1:
-                vcf_variant_obj = VcfVariant(args.isolate, line_list[0], line_list[1], line_list[3], line_list[4], args.input_vcf)
-                insertions.append(vcf_variant_obj)
+                if "," in line_list[4]:
+                    bases = line_list[4].split(",")
+                    bases.remove("*")
+
+                    for base in bases:
+                        vcf_variant_obj = VcfVariant(args.isolate, line_list[0], line_list[1], line_list[3], base, args.input_vcf)
+                        snps.append(vcf_variant_obj)
+                        # print(vcf_variant_obj.ref, vcf_variant_obj.alt)
+
+                else:
+                    # print("indel")
+                    pass
 
 # Define numbers of each type of variant (SNP, insertion, or deletion):
 num_snps = len(snps)
 num_insertions = len(insertions)
 num_deletions = len(deletions)
 
-# Print numbers of each type of variant to screen:
-# print("Number of SNPs:\t%s" % num_snps)
-# print("Number of insertions:\t%s" % num_insertions)
-# print("Number of deletions:\t%s" % num_deletions)
-
+# Get types of mutations
 nuc_mutations = {"A->C":0, "A->G":0, "A->T":0, "C->G":0, "C->A":0, "C->T":0, "G->C":0, "G->A":0, "G->T":0, "T->A":0, "T->C":0, "T->G":0}
 
 for variant in snps:
@@ -111,24 +117,6 @@ for i in nuc_mutations:
     print("\tMutation:\t" + i + "\tRaw number of:\t" + str(nuc_mutations[i]))
 
 raw_nuc_mutation_rates = {}
-# initialize with 0s for rates in case 0 subs of that type
-raw_nuc_mutation_rates["A->C"] = 0
-raw_nuc_mutation_rates["A->G"] = 0
-raw_nuc_mutation_rates["A->T"] = 0
-
-raw_nuc_mutation_rates["C->A"] = 0
-raw_nuc_mutation_rates["C->G"] = 0
-raw_nuc_mutation_rates["C->T"] = 0
-
-raw_nuc_mutation_rates["G->A"] = 0
-raw_nuc_mutation_rates["G->C"] = 0
-raw_nuc_mutation_rates["G->T"] = 0
-
-raw_nuc_mutation_rates["T->A"] = 0
-raw_nuc_mutation_rates["T->C"] = 0
-raw_nuc_mutation_rates["T->G"] = 0
-
-## calculate mutation rates of each type
 
 raw_nuc_mutation_rates["A->C"] = nuc_mutations["A->C"] / num_snps
 raw_nuc_mutation_rates["A->G"] = nuc_mutations["A->G"] / num_snps
@@ -156,7 +144,7 @@ gc_correction = gc_percent/(100 - gc_percent)
 corrected_mutation_rates = {}
 
 corrected_num_snps = (nuc_mutations["A->C"] * gc_correction) + (nuc_mutations["A->G"] * gc_correction) + (nuc_mutations["A->T"] * gc_correction) + (nuc_mutations["T->A"] * gc_correction) + (nuc_mutations["T->C"] * gc_correction) + (nuc_mutations["T->G"] * gc_correction) + nuc_mutations["C->A"] + nuc_mutations["C->G"] + nuc_mutations["C->T"] + nuc_mutations["G->A"] + nuc_mutations["G->C"] + nuc_mutations["G->T"]
-print(corrected_num_snps)
+# print(corrected_num_snps)
 
 corrected_mutation_rates["A->C"] = (nuc_mutations["A->C"] * gc_correction) / corrected_num_snps
 corrected_mutation_rates["A->G"] = (nuc_mutations["A->G"] * gc_correction) / corrected_num_snps

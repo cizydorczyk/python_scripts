@@ -46,7 +46,7 @@ with open("temp.vcf", "r") as infile:
 print("Number of variant positions: %s" % str(len(variant_positions)))
 
 variant_positions_set = set(variant_positions)
-bases_count_dict = {"A":0, "T":0, "C":0, "G":0, "N":0, "Other":0}
+bases_count_dict = {"A":0, "T":0, "C":0, "G":0, "N":0, "-":0}
 
 reference_seq = list(reference[0].seq)
 excluded_pos_count = 0
@@ -63,7 +63,7 @@ for i in range(0, len(reference_seq)):
 
 print(bases_count_dict)
 subprocess.run(["rm", "temp.vcf"])
-print("Invariant bases sum: %s" % str(bases_count_dict["A"] + bases_count_dict["T"] + bases_count_dict["C"] + bases_count_dict["G"] + bases_count_dict["N"] + bases_count_dict["Other"]))
+print("Invariant bases sum: %s" % str(bases_count_dict["A"] + bases_count_dict["T"] + bases_count_dict["C"] + bases_count_dict["G"] + bases_count_dict["N"] + bases_count_dict["-"]))
 print("Done.")
 
 # for index in range(0,seq_length):
