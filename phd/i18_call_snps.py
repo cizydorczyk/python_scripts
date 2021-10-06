@@ -7,11 +7,11 @@ import shlex # for converting string commands to lists for subprocess.run to avo
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--fastq_dir", help="dir with fastq files on local")
+parser.add_argument("--fastq_dir", help="dir with fastq files on local; all fastq must be in single directory, isolates & outgroups included")
 parser.add_argument("--project_dir", help="output dir")
 parser.add_argument("--isolate_list", help="isolate list, one isolate per line")
 parser.add_argument("--outgroup_id", help=("outgroup id; "
-    "name of outgroup used to name reads"), default="")
+    "name of outgroup used to name reads; comma separated list possible"), default="")
 parser.add_argument("--gz", help=("gzipped reads? yes or no, default = 'yes'"),
     default='yes')
 parser.add_argument("--reference", help=("reference genome; should be "
@@ -39,11 +39,19 @@ args = parser.parse_args()
 isolate_list = []
 with open(args.isolate_list, 'r') as infile1:
     for line in infile1:
-        isolate_list.append(line.strip())
+        if line.strip() != "": # necessary to deal with blank lines at end of file..they break the entire script past SNP calling...
+            isolate_list.append(line.strip())
 
 ## Add outgroup to isolate list; outgroup fastq must be in same dir & named same as for rest of isolates:
 isolate_list_w_outgroup = isolate_list.copy()
-isolate_list_w_outgroup.append(args.outgroup_id)
+#isolate_list_w_outgroup.append(args.outgroup_id)
+if args.outgroup_id == "":
+    pass
+elif len(args.outgroup_id.split(",")) == 1:
+    isolate_list_w_outgroup.append(args.outgroup_id)
+elif len(args.outgroup_id.split(",")) > 1:
+    isolate_list_w_outgroup = isolate_list_w_outgroup + args.outgroup_id.split(",")
+
 
 ## Create directory structure:
 raw_snippy_output_dir = os.path.join(args.project_dir, "raw_snippy_output")
@@ -104,6 +112,7 @@ if args.snippy_core:
         f"--prefix {snippy_core_output_prefix} "
         f"--ref {args.reference} {' '.join(snippy_dir_list)}"
     )
+    print(snippy_core_cmd)
     subprocess.run(shlex.split(snippy_core_cmd), shell=False)
 
     snippy_clean_cmd = (f"snippy-clean_full_aln {full_aln}")

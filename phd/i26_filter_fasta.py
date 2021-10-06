@@ -5,8 +5,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--input_fasta", help="fasta from which to extract taret seq")
 parser.add_argument("--output_fasta", help="fasta to write selected sequence to")
-parser.add_argument("--remove_seq", help="file with seq ids to remove, one per line")
-parser.add_argument("--keep_seq", help="seq to extract; cannot be used with remove_seq")
+parser.add_argument("--remove_seq", help="file with seq ids to remove, one per line", default="")
+parser.add_argument("--keep_seq", help="seq to extract; cannot be used with remove_seq", default="")
 
 args = parser.parse_args()
 
