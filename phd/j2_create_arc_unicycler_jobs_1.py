@@ -29,7 +29,7 @@ header9 = "#SBATCH --error=" + args.isolate + ".err"
 
 header = "\n".join([header1, header7, header2, header3, header4, header5, header6, header8, header9])
 
-unicycler_cmd = "module load biobuilds/conda\n\nsource activate unicycler-0.4.8\n\nunicycler -1 " + args.f1 + " -2 " + args.f2 + " -o " + args.output_dir +\
+unicycler_cmd = "module load bioconda/conda3\n\nsource activate unicycler-0.4.8\n\nunicycler -1 " + args.f1 + " -2 " + args.f2 + " -o " + args.output_dir +\
     " -t " + args.nt + " --depth_filter 0.01 --min_fasta_len 100 --min_polish_size 100"
 
 to_write = header + "\n\n" + unicycler_cmd

@@ -1,12 +1,18 @@
+## SNP-Calling Pipeline
+## Written by: Conrad Izydorczyk
+## Last Updated: November 3, 2021
+
 import argparse
 import os
 import random
 import subprocess
 import i18_remove_ref
 import shlex # for converting string commands to lists for subprocess.run to avoid use of shell=True
+import sys
 
 parser = argparse.ArgumentParser()
 
+# General script options:
 parser.add_argument("--fastq_dir", help="dir with fastq files on local; all fastq must be in single directory, isolates & outgroups included")
 parser.add_argument("--project_dir", help="output dir")
 parser.add_argument("--isolate_list", help="isolate list, one isolate per line")
@@ -22,7 +28,11 @@ parser.add_argument("--fastq_endings", help=("ending indicating fastq "
     "forward/reverse reads, e.g. _1.fastq/_2.fastq Default = "
     "'_1.fastq,_2.fastq'."), default='_1.fastq,_2.fastq')
 parser.add_argument("--nt", help="number of threads to use")
-parser.add_argument("--minfrac", help="snippy minfrac option")
+
+# Snippy options:
+parser.add_argument("--minfrac", help="snippy minfrac option", type=float, required=True)
+parser.add_argument("--cleanup", help="include Snippy --cleanup flag? Include this flag to run (default not run).", action="store_true")
+parser.add_argument("--unmapped", help="Snippy --unmapped flag. Include to run (default = no).", action="store_true")
 
 # Control options:
 parser.add_argument("--call_snps", action="store_true")
@@ -34,6 +44,11 @@ parser.add_argument("--iqtree", action="store_true")
 parser.add_argument("--cfml", action="store_true")
 
 args = parser.parse_args()
+
+## Can't set --cleanup and --unmapped together (it just deletes the bam/read files...):
+if args.cleanup and args.unmapped:
+    print("Can't set --cleanup and --unmapped together. Exiting.")
+    sys.exit()
 
 ## Read isolate list:
 isolate_list = []
@@ -72,6 +87,24 @@ if not os.path.isdir(cfml_dir):
 
 ## Run snippy:
 
+# Check appropriate Snippy control options:
+if 0.0 < float(args.minfrac) <= 1.0:
+    pass
+else:
+    print("--minfrac must be a decimal between 0 and 1. Exiting.")
+    sys.exit()
+
+if args.cleanup:
+    cleanup_var = "--cleanup "
+else:
+    cleanup_var = ""
+
+if args.unmapped:
+    unmapped_var = "--unmapped "
+else:
+    unmapped_var = ""
+
+
 fastq_endings = args.fastq_endings.split(",")
 snippy_dir_list = []
 
@@ -88,7 +121,8 @@ for isolate in isolate_list_w_outgroup:
 
     snippy_cmd = (
         f"snippy "
-        f"--cleanup "
+        f"{cleanup_var}"
+        f"{unmapped_var}"
         f"--cpus {args.nt} "
         f"--outdir {isolate_snippy_dir} "
         f"--ref {args.reference} "
@@ -98,6 +132,7 @@ for isolate in isolate_list_w_outgroup:
     )
 
     # run snippy cmd:
+    print(f"Running Snippy command: {snippy_cmd}")
     if args.call_snps: # allows for control of pipeline steps
         subprocess.run(shlex.split(snippy_cmd), shell=False)
 
