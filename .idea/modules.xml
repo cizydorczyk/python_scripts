@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../grad_school_scripts/.idea/grad_school_scripts.iml" filepath="$PROJECT_DIR$/../grad_school_scripts/.idea/grad_school_scripts.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../pipeline-test/.idea/pipeline-test.iml" filepath="$PROJECT_DIR$/../pipeline-test/.idea/pipeline-test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/python_scripts.iml" filepath="$PROJECT_DIR$/.idea/python_scripts.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../test-snakemake/.idea/test-snakemake.iml" filepath="$PROJECT_DIR$/../test-snakemake/.idea/test-snakemake.iml" />
     </modules>
   </component>
 </project>

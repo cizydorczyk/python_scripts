@@ -41,19 +41,21 @@ mash_cmd_raw_output = subprocess.run(mash_cmd, stderr=subprocess.PIPE)
 subprocess.run(["rm", "temp.R1.mash.sketch.msh"])
 
 mash_cmd_output = mash_cmd_raw_output.stderr.decode('utf-8')
-mash_gsize_est = float(mash_cmd_output.strip().split('\n')[0].split(' ')[-1])
-print(args.isolate)
-print("Estimated genome size is ~" + str(mash_gsize_est))
+mash_gsize_est = float(mash_cmd_output.strip().split('\n')[1].split(' ')[-1])
+#print(args.isolate)
+#print("Estimated genome size is ~" + str(mash_gsize_est))
 # mash_cov_est = mash_cmd_output.strip().split('\n')[1].split(' ')[-1]
 
 #print('\nEstimating sequencing depth...')
 orig_depth = total_bases/mash_gsize_est
 
-print("Original sequencing depth is ~" + str(round(orig_depth,3)))
+to_print = args.isolate + "\t" + str(round(orig_depth, 2))
+print(to_print)
+#print("Original sequencing depth is ~" + str(round(orig_depth,3)))
 
-if orig_depth > 110:
-    depth_factor = round(100/orig_depth, 3)
-    print("\nSubsampling factor to go from ~" + str(round(orig_depth,3)) + "x depth to ~100x depth is ~" + str(depth_factor))
+#if orig_depth > 110:
+#    depth_factor = round(100/orig_depth, 3)
+#    print("\nSubsampling factor to go from ~" + str(round(orig_depth,3)) + "x depth to ~100x depth is ~" + str(depth_factor))
 
     #print("Subsampling reads (R1 & R2) by factor of " + str(depth_factor) + "..")
 
@@ -62,8 +64,8 @@ if orig_depth > 110:
 
     #print("Done.")
 
-else:
-    print("\nNo subsampling necessary for isolate " + args.isolate)
+#else:
+#    print("\nNo subsampling necessary for isolate " + args.isolate)
     #print("Copying reads to subsampled directory and adding '.sub.' between _1/_2 and fastq...")
 
     #subprocess.run(["cp", args.R1, args.fastq_dir])

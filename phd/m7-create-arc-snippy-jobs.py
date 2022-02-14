@@ -9,15 +9,13 @@ parser.add_argument("--maxtime", help="max time for computation")
 parser.add_argument("--memmax", help="max memory to request")
 parser.add_argument("--partitions", help="comma sep list of partitions")
 
-parser.add_argument("--fasta", help="assembly fasta to annotate")
+parser.add_argument("--r1")
+parser.add_argument("--r2")
+
+parser.add_argument("--ref", help="assembly fasta to annotate")
 parser.add_argument("--output_dir", help="output dir")
 parser.add_argument("--isolate", help="isolate name/number")
 parser.add_argument("--job_file", help="output job file")
-parser.add_argument("--proteins_file", help="prokka proteins file")
-parser.add_argument("--genus")
-parser.add_argument("--species")
-parser.add_argument("--mincontiglen")
-parser.add_argument("--prodigaltf")
 
 args = parser.parse_args()
 
@@ -33,12 +31,15 @@ header9 = "#SBATCH --error=" + args.isolate + ".err"
 
 header = "\n".join([header1, header7, header2, header3, header4, header5, header6, header8, header9])
 
-unicycler_cmd = "module load biobuilds/conda\n\nsource activate prokka-env\n\nprokka --outdir " + args.output_dir + " --prefix " +\
-    args.isolate + " --addgenes --locustag " + args.isolate + " --genus " + args.genus + " --species " + args.species + \
-    " --kingdom Bacteria --gcode 11 --proteins " + args.proteins_file + " --cpus " + args.nt + " --mincontiglen " +\
-    args.mincontiglen + " --prodigaltf " + args.prodigaltf + " " + args.fasta
+#unicycler_cmd = "module load biobuilds/conda\n\nsource activate prokka-env\n\nprokka --outdir " + args.output_dir + " --prefix " +\
+#    args.isolate + " --addgenes --locustag " + args.isolate + " --genus " + args.genus + " --species " + args.species + \
+#    " --kingdom Bacteria --gcode 11 --proteins " + args.proteins_file + " --cpus " + args.nt + " --mincontiglen " +\
+#    args.mincontiglen + " --prodigaltf " + args.prodigaltf + " " + args.fasta
 
-to_write = header + "\n\n" + unicycler_cmd
+snippy_cmd = "conda activate base\n\nconda activate snippy\n\nsnippy --R1 " + args.r1 + " --R2 " + args.r2 + \
+    " --ref " + args.ref + " --outdir " + args.output_dir + "/" + args.isolate + " --cpus " + args.nt + " --minfrac 0.9"
+
+to_write = header + "\n\n" + snippy_cmd
 
 print(to_write)
 
