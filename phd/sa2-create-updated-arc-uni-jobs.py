@@ -9,10 +9,10 @@ parser.add_argument("--maxtime", help="max time for computation")
 parser.add_argument("--memmax", help="max memory to request")
 parser.add_argument("--partitions", help="comma sep list of partitions")
 
-parser.add_argument("--r1")
-parser.add_argument("--r2")
+parser.add_argument("--mode", help="Unicycler mode: conservative, normal, or bold. default=normal", default="normal")
 
-parser.add_argument("--ref", help="assembly fasta to annotate")
+parser.add_argument("--f1", help="f1 fastq file")
+parser.add_argument("--f2", help="f2 fastq file")
 parser.add_argument("--output_dir", help="output dir")
 parser.add_argument("--isolate", help="isolate name/number")
 parser.add_argument("--job_file", help="output job file")
@@ -31,17 +31,10 @@ header9 = "#SBATCH --error=" + args.isolate + ".err"
 
 header = "\n".join([header1, header7, header2, header3, header4, header5, header6, header8, header9])
 
-#unicycler_cmd = "module load biobuilds/conda\n\nsource activate prokka-env\n\nprokka --outdir " + args.output_dir + " --prefix " +\
-#    args.isolate + " --addgenes --locustag " + args.isolate + " --genus " + args.genus + " --species " + args.species + \
-#    " --kingdom Bacteria --gcode 11 --proteins " + args.proteins_file + " --cpus " + args.nt + " --mincontiglen " +\
-#    args.mincontiglen + " --prodigaltf " + args.prodigaltf + " " + args.fasta
+unicycler_cmd = "source activate unicycler-0.5.0\n\nunicycler -1 " + args.f1 + " -2 " + args.f2 + " -o " + args.output_dir +\
+    " -t " + args.nt + " --depth_filter 0.25 --min_fasta_len 200 --mode " + args.mode
 
-snippy_cmd = "conda activate base\n\nconda activate snippy\n\nsnippy --R1 " + args.r1 + " --R2 " + args.r2 + \
-    " --ref " + args.ref + " --outdir " + args.output_dir + "/" + args.isolate + " --cpus " + args.nt + " --minfrac 0.9 --cleanup"
-
-to_write = header + "\n\n" + snippy_cmd
-
-print(to_write)
+to_write = header + "\n\n" + unicycler_cmd
 
 with open(args.job_file, "w") as outfile:
     outfile.write(to_write)

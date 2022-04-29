@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser()
 
 # General script options:
 parser.add_argument("--blast_file")
-parser.add_argument("--genus")
+parser.add_argument("--genus", default="any")
 parser.add_argument("--blast_contigs")
 parser.add_argument("--reference")
 parser.add_argument("--output_contigs")
@@ -24,12 +24,16 @@ raw_blast_output = NCBIXML.parse(blast_handle)
 records_to_keep = []
 for record in raw_blast_output:
     record_alignment_titles = [alignment.title for alignment in record.alignments]
-    if any(args.genus in title for title in record_alignment_titles):
-        print(f"Contig {record.query} has at least one hit in the specified genus; keeping contig...")
+    if args.genus == "any":
+        print("Keeping all records as no genus specified...")
         records_to_keep.append(record.query)
     else:
-        print(f"Contig {record.query} has NO hits in the specified genus; removing contig...")
-    
+        if any(args.genus in title for title in record_alignment_titles):
+            print(f"Contig {record.query} has at least one hit in the specified genus; keeping contig...")
+            records_to_keep.append(record.query)
+        else:
+            print(f"Contig {record.query} has NO hits in the specified genus; removing contig...")
+
 # Read in contigs & reference fasta files:
 blast_contigs_records = list(SeqIO.parse(args.blast_contigs, "fasta"))
 reference_records = list(SeqIO.parse(args.reference, "fasta"))
@@ -75,7 +79,7 @@ blast_handle.close()
 #     evalue = list(unique_subset['evalue'])[0]
 #     max_bitscore = max(unique_subset['bitscore'])
 #     qseqid = list(unique_subset['qseqid'])[0]
-    
+
 #     to_append = [qseqid, unique, max_bitscore, taxid, evalue]
 #     sseqid_lists.append(to_append)
 
