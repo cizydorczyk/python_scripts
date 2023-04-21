@@ -238,6 +238,14 @@ def get_args():
         metavar="str",
     )
 
+    parser.add_argument(
+        "--bakta_proteins",
+        help="GBK file to use with bakta --proteins. optional; useful for getting locus tags from high quality genome.",
+        type=str,
+        metavar="str",
+        default="",
+    )
+
     return parser.parse_args()
 
 
@@ -350,6 +358,7 @@ def main():
             assembly_arg=args.assembly_dir,
             min_contig_len_arg=args.min_contig_len,
             assembly_suffix=args.assembly_suffix,
+            proteins_file=args.bakta_proteins,
         )
 
 
@@ -749,6 +758,7 @@ def create_bakta_jobs(
     assembly_arg,
     min_contig_len_arg,
     assembly_suffix,
+    proteins_file,
 ):
     """Function to create Bakta jobs for ARC."""
 
@@ -761,10 +771,15 @@ def create_bakta_jobs(
         assembly = os.path.join(assembly_arg, f"{isolate}-{assembly_suffix}")
         output_dir = os.path.join(output_dir_arg, isolate)
 
+        if proteins_file == "":
+            proteins_ending = ""
+        else:
+            proteins_ending = f" --proteins {proteins_file}"
+
         bakta_cmd = (
             f"bakta --db {baktadb_arg} --min-contig-len {min_contig_len_arg} --prefix {isolate} --output {output_dir} "
             f"--genus {genus_arg} --species {species_arg} --strain {isolate} --translation-table 11 --compliant "
-            f"--threads {num_threads_arg} {assembly}"
+            f"--threads {num_threads_arg}{proteins_ending} {assembly}"
         )
 
         bakta_commands[isolate] = bakta_cmd
