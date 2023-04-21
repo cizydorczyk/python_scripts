@@ -232,6 +232,30 @@ def main():
     
     print("Done.")
 
+    print(ref_positions[665561], ref_positions[680385])
+    print(ref_positions[863875], ref_positions[906018])
+    print(ref_positions[1433825], ref_positions[1476616])
+    print(ref_positions[1684114], ref_positions[1720919])
+    print(ref_positions[2691759], ref_positions[2741659])
+    print(ref_positions[4546499], ref_positions[4554097])
+    print(ref_positions[2504700], ref_positions[2552409])
+    print(ref_positions[2753109], ref_positions[2784809])
+    print(ref_positions[2798145], ref_positions[2908715])
+    print(ref_positions[3394109], ref_positions[3433537])
+    print(ref_positions[4932837], ref_positions[4962250])
+    print(ref_positions[280017], ref_positions[292442])
+    print(ref_positions[2054752], ref_positions[2071349])
+    print(ref_positions[2611035], ref_positions[2622606])
+    print(ref_positions[2640878], ref_positions[2649200])
+    print(ref_positions[3148400], ref_positions[3194166])
+    print(ref_positions[3744468], ref_positions[3798235])
+    print(ref_positions[3947016], ref_positions[3955409])
+    print(ref_positions[4770083], ref_positions[4791709])
+    print(ref_positions[4967101], ref_positions[4974424])
+    print(ref_positions[5574296], ref_positions[5585225])
+    print(ref_positions[5658978], ref_positions[5686227])
+    print(ref_positions[6129698], ref_positions[6166692])
+
 
 def get_corrected_ref_positions(ref_length, insertions_dict):
     ref_positions = {}
