@@ -13,10 +13,10 @@ with open(args.input_vf, "r") as infile1:
     for line in infile1:
         if not line.startswith("#"):
             line_elements = line.strip().split("\t")
-            cov = line_elements[5]
-            mean_depth = line_elements[6]
+            cov = round(float(line_elements[5]), 2)
+            mean_depth = round(float(line_elements[6]), 2)
 
-            vf_list.append(cov + "_" + mean_depth)
+            vf_list.append(str(cov) + "_" + str(mean_depth))
 
 to_write = "\n".join(vf_list)
 with open(args.output_vf, "w") as outfile1:
