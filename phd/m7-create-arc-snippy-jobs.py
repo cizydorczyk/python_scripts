@@ -31,17 +31,12 @@ header9 = "#SBATCH --error=" + args.isolate + ".err"
 
 header = "\n".join([header1, header7, header2, header3, header4, header5, header6, header8, header9])
 
-#unicycler_cmd = "module load biobuilds/conda\n\nsource activate prokka-env\n\nprokka --outdir " + args.output_dir + " --prefix " +\
-#    args.isolate + " --addgenes --locustag " + args.isolate + " --genus " + args.genus + " --species " + args.species + \
-#    " --kingdom Bacteria --gcode 11 --proteins " + args.proteins_file + " --cpus " + args.nt + " --mincontiglen " +\
-#    args.mincontiglen + " --prodigaltf " + args.prodigaltf + " " + args.fasta
+# snippy_cmd = "conda activate i18_snp_pipeline_env_testing\n\nsnippy --R1 " + args.r1 + " --R2 " + args.r2 + \
+#     " --ref " + args.ref + " --outdir " + args.output_dir + "/" + args.isolate + " --cpus " + args.nt + " --minfrac 0.9 --cleanup"
 
-snippy_cmd = "source activate base\n\nconda activate snippy\n\nsnippy --R1 " + args.r1 + " --R2 " + args.r2 + \
-    " --ref " + args.ref + " --outdir " + args.output_dir + "/" + args.isolate + " --cpus " + args.nt + " --minfrac 0.01"
+snippy_cmd = f"source activate i18_snp_pipeline_env_testing\n\nsnippy --R1 {args.r1} --R2 {args.r2} --ref {args.ref} --outdir {args.output_dir}{args.isolate}/ --cpus {args.nt} --minfrac 0.9"
 
 to_write = header + "\n\n" + snippy_cmd
-
-print(to_write)
 
 with open(args.job_file, "w") as outfile:
     outfile.write(to_write)

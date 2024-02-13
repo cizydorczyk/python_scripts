@@ -32,6 +32,16 @@ def get_args():
                         type=str,
                         required=True)
 
+    parser.add_argument('-c1',
+                        '--coords_1',
+                        help='###:### format. coords of first aa in nucl alignment (1-based!). check gaps to figure out where the correct codon is.',
+                        required=True)
+
+    parser.add_argument('-c2',
+                        '--coords_2',
+                        help='###:### format. coords of second aa in nucl alignment (1-based!). check gaps to figure out where the correct codon is.',
+                        required=True)
+
 
     return parser.parse_args()
 
@@ -48,12 +58,17 @@ def main():
     incomplete_blaz_seqs = []
     blaz_types = {}
 
+    coords_1_1 = int(args.coords_1.split(":")[0])-1 # -1 to get python-based coords (0-based)
+    coords_1_2 = int(args.coords_1.split(":")[1]) # no -1 b/c range in python does not include final coord
+    coords_2_1 = int(args.coords_2.split(":")[0])-1
+    coords_2_2 = int(args.coords_2.split(":")[1])
+
     for seq in blaz_seqs:
 
         seq_len = len(seq.seq.replace("-", ""))
 
-        codon_1 = str(seq.seq[354:357].upper())
-        codon_2 = str(seq.seq[618:621].upper())
+        codon_1 = str(seq.seq[coords_1_1:coords_1_2].upper())
+        codon_2 = str(seq.seq[coords_2_1:coords_2_2].upper())
         aa_1 = getCodon(codon_1)
         aa_2 = getCodon(codon_2)
         blaz_type = getBlazType(aa_1, aa_2)
